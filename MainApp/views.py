@@ -46,7 +46,7 @@ def add_snippet_page(request):
 
 
 def snippets_page(request):
-    snippets = Snippet.objects.all()
+    snippets = Snippet.objects.filter(public=True)
     context = {
         'pagename': 'Просмотр сниппетов',
         'snippets': snippets
@@ -66,10 +66,11 @@ def snippet_detail(request, snippet_id):
         return render(request, "pages/snippet_detail.html", context)
 
 
+@login_required
 def snippet_edit(request, snippet_id):
     context = {'pagename': 'Редактирование сниппета'}
     try:
-        snippet = Snippet.objects.get(pk=snippet_id)
+        snippet = Snippet.objects.filter(user=request.user).get(pk=snippet_id)
     except ObjectDoesNotExist:
         raise Http404
     
@@ -92,13 +93,16 @@ def snippet_edit(request, snippet_id):
         data_form = request.POST
         snippet.name = data_form["name"]
         snippet.code = data_form["code"]
+        # ну можно проверку в view сделать, мол True if public in form else False, но как то костыльно
+        snippet.public = data_form.get("public", False)
         snippet.save()
         return redirect("snippets-list")
 
 
+@login_required
 def snippet_delete(request, snippet_id):
     if request.method == "GET" or request.method == "POST":
-        snippet = get_object_or_404(Snippet, id=snippet_id)
+        snippet = get_object_or_404(Snippet.objects.filter(user=request.user), id=snippet_id)
         snippet.delete()
     return redirect('snippets-list')
 
