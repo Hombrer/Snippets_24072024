@@ -108,6 +108,8 @@ def snippet_delete(request, snippet_id):
 
 
 def login(request):
+    print(request)
+    # print(request.META.get("REMOTE_ADDR"))
     if request.method == 'POST':
         username = request.POST.get("username")
         password = request.POST.get("password")
